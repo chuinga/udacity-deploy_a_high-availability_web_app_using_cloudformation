@@ -1,0 +1,43 @@
+📜 Logging to ./logs/delete-all-stacks/delete-log-2025-08-25_16-43-27.txt
+🔒 Checking AWS identity...
+🚨 You are logged in as:
+👤 User:       Udacity
+🔗 ARN:        arn:aws:iam::058264503354:user/Udacity
+🏢 Account ID: 058264503354
+🌍 Region:     us-east-1
+
+❓ Is this the right account to wreak havoc on? (y/N): 🕵️ Scanning for active CloudFormation stacks...
+🧨 Here are your active stacks:
+ [1] 💣 networkserver
+
+🔢 Enter the numbers of the stacks you want to delete (e.g., 1 3 4), or press Enter to skip stack deletion: ⚠️ You selected the following stacks for deletion:
+   💥 networkserver
+
+🚨 Final confirmation — delete these stacks? (y/N): 🧭 Resolving StackIds for selected stacks...
+🧠 Analyzing stack dependencies (Exports/Imports)...
+🗺️ Deletion order (importers → exporters):
+   💥 networkserver
+⏳ Initiating deletions in the computed order...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛡️ Checking termination protection for: networkserver ...
+🗑️ Initiating deletion of stack: networkserver ...
+⏳ Waiting for networkserver to be deleted...
+✅ Stack networkserver deleted.
+
+🧹 Starting orphaned resource sweep (these often incur charges).
+✅ No EC2 instances.
+✅ No NAT Gateways.
+✅ No Elastic IPs.
+✅ No unattached EBS volumes.
+✅ No load balancers.
+✅ No VPC endpoints.
+✅ No RDS instances.
+✅ No manual RDS snapshots.
+✅ No S3 buckets.
+✅ No Glue resources.
+✅ No Amazon Location resources.
+✅ No customer-managed KMS keys.
+✅ No SNS topics.
+
+🎯 Sweep complete. Re-run the script until it finds nothing. Keep an eye on Cost Explorer for the next day to confirm charges drop.
