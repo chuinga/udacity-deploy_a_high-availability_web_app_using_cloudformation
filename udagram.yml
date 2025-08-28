@@ -11,6 +11,10 @@ Parameters:
     Type: Number
     Description: Desired capacity for the fleet of instances
     Default: 1
+  ImageId:
+    Type: AWS::EC2::Image::Id
+    Description: AMI ID for EC2 instances
+    Default: ami-0bbdd8c17ed981ef9
 
 
 Resources:
@@ -59,20 +63,21 @@ Resources:
             EOF
 
             # Copy index.html to the Nginx web directory
-            sudo rm -r $WEB_DIR/index.*
-            sudo cp index.html $WEB_DIR
+            sudo cp index.html $WEB_DIR/index.html
 
             # Reload Nginx to apply changes
             sudo systemctl reload nginx
 
-        ImageId: ami-0bbdd8c17ed981ef9
+        ImageId: !Ref ImageId
         SecurityGroupIds:
           - !Ref SecurityGroup
-        InstanceType: t2.micro
+        InstanceType: t3.micro
         BlockDeviceMappings:
-          - DeviceName: "/dev/sdk"
+          - DeviceName: "/dev/sdf"
             Ebs:
-              VolumeSize: '10'
+              VolumeSize: 10
+              VolumeType: gp3
+              DeleteOnTermination: true
 
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
@@ -83,9 +88,11 @@ Resources:
       LaunchTemplate:
         LaunchTemplateId: !Ref LaunchTemplate
         Version: !GetAtt LaunchTemplate.LatestVersionNumber
-      MinSize: '1'
+      MinSize: 1
       DesiredCapacity: !Ref AsgDesiredCapacity
-      MaxSize: '6'
+      MaxSize: 6
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 300
       TargetGroupARNs:
         - Ref: TargetGroup
 
@@ -120,7 +127,7 @@ Resources:
             Ref: TargetGroup
       LoadBalancerArn:
         Ref: LoadBalancer
-      Port: '80'
+      Port: 80
       Protocol: HTTP
 
   ListenerRule:
@@ -153,7 +160,7 @@ Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: "udacity-project-1981"
+      BucketName: !Sub "${AWS::StackName}-${AWS::AccountId}-${AWS::Region}"
       VersioningConfiguration:
         Status: Enabled
       BucketEncryption:
@@ -220,3 +227,5 @@ Resources:
       Path: '/'
       Roles:
         - !Ref InstanceRole
+
+
