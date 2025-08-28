@@ -1,7 +1,7 @@
 # CD12352 - Infrastructure as Code Project Solution
 # Miguel Martins
 
-# Infrastructure Diagram
+## Infrastructure Diagram
 ![Infrastructure Diagram](./udacity_cloudformation_diagram.png)
 
 ## Application Load Balancer DNS name
