@@ -7,6 +7,19 @@
 ## Application Load Balancer DNS name
 - [http://udagra-LoadB-gHxpBgvezbPZ-2040284794.us-east-1.elb.amazonaws.com](http://udagra-LoadB-gHxpBgvezbPZ-2040284794.us-east-1.elb.amazonaws.com)
 
+## Global Accessibility Verification
+**Tested and confirmed accessible from multiple regions:**
+- ✅ USA
+- ✅ Australia  
+- ✅ Brazil
+- ✅ Iceland
+- ✅ Japan
+
+**Testing method:** VPN + incognito browser to ensure DNS propagation worldwide.
+
+![Working Application Screenshot](./working-app-screenshot.png)
+*Screenshot showing the deployed application displaying "It works! Udagram, Udacity"*
+
 ## Spin up instructions
 - Use the following commands to create stacks:
     - `./create_network.sh`
