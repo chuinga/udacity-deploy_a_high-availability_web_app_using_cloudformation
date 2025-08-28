@@ -20,4 +20,7 @@ aws cloudformation update-stack \
   --parameters file://network-parameters.json \
   --capabilities CAPABILITY_NAMED_IAM \
   --region us-east-1 \
-  ${profile:+--profile "$profile"}
+  ${profile:+--profile "$profile"} || {
+  echo "Error: CloudFormation stack update failed" >&2
+  exit 1
+}

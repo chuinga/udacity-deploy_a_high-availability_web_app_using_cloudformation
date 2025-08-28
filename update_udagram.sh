@@ -14,10 +14,17 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
+# Check if required files exist
+[ -f "udagram.yml" ] || { echo "Error: udagram.yml not found" >&2; exit 1; }
+[ -f "udagram-parameters.json" ] || { echo "Error: udagram-parameters.json not found" >&2; exit 1; }
+
 aws cloudformation update-stack \
   --stack-name udagramserver \
   --template-body file://udagram.yml \
   --parameters file://udagram-parameters.json \
   --capabilities CAPABILITY_NAMED_IAM \
   --region us-east-1 \
-  ${profile:+--profile "$profile"}
+  ${profile:+--profile "$profile"} || {
+  echo "Error: CloudFormation stack update failed. Check stack events for details." >&2
+  exit 1
+}
