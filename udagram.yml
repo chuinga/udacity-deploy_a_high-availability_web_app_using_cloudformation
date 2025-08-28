@@ -39,17 +39,19 @@ Resources:
         IamInstanceProfile:
           Arn: !GetAtt InstanceProfile.Arn
         UserData:
-          Fn::Base64: |
+          Fn::Base64: !Sub |
             #!/bin/bash
             apt-get update -y
-            sudo apt-get install nginx -y
+            sudo apt-get install nginx awscli -y
             service nginx start
 
             # Define the directory where the index.html will be placed
             WEB_DIR="/var/www/html"
 
-            # Create a basic index.html file
-            cat <<EOF > index.html
+            # Download content from S3 bucket
+            aws s3 cp s3://${S3Bucket}/index.html $WEB_DIR/index.html || {
+              # Fallback: create basic index.html if S3 download fails
+              cat <<EOF > $WEB_DIR/index.html
             <!DOCTYPE html>
             <html>
             <head>
@@ -57,13 +59,11 @@ Resources:
             </head>
             <body>
                 <h1>It works! Udagram, Udacity</h1>
-                <p>This website is hosted on Nginx</p>
+                <p>This website is hosted on Nginx and content served from S3</p>
             </body>
             </html>
             EOF
-
-            # Copy index.html to the Nginx web directory
-            sudo cp index.html $WEB_DIR/index.html
+            }
 
             # Reload Nginx to apply changes
             sudo systemctl reload nginx
@@ -185,7 +185,8 @@ Resources:
       PolicyDocument:
         Statement:
           - Effect: Allow
-            Principal: "*"
+            Principal:
+              AWS: !Sub "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${OriginAccessIdentity}"
             Action: "s3:GetObject"
             Resource: !Sub "arn:aws:s3:::${S3Bucket}/*"
           - Effect: Deny
@@ -232,4 +233,46 @@ Resources:
       Roles:
         - !Ref InstanceRole
 
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+          - Id: S3Origin
+            DomainName: !GetAtt S3Bucket.RegionalDomainName
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${OriginAccessIdentity}"
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+          CachedMethods:
+            - GET
+            - HEAD
+          ForwardedValues:
+            QueryString: false
+        Enabled: true
+        DefaultRootObject: index.html
+
+  OriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub "OAI for ${ProjectName} S3 bucket"
+
+Outputs:
+
+  LoadBalancerURL:
+    Description: Public URL of the Load Balancer
+    Value: !Sub "http://${LoadBalancer.DNSName}"
+    Export:
+      Name: !Sub "${ProjectName}-load-balancer-url"
+
+  CloudFrontURL:
+    Description: CloudFront Distribution URL for static content
+    Value: !Sub "https://${CloudFrontDistribution.DomainName}"
+    Export:
+      Name: !Sub "${ProjectName}-cloudfront-url"
 
