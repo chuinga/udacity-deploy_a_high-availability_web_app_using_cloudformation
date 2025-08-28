@@ -8,7 +8,7 @@ Parameters:
     Description: Tag name for our resources
     Default: udacity-lb-project
   AsgDesiredCapacity:
-    Type: String
+    Type: Number
     Description: Desired capacity for the fleet of instances
     Default: 1
 
@@ -21,7 +21,7 @@ Resources:
       GroupDescription: !Ref ProjectName
       VpcId:
         Fn::ImportValue:
-          !Sub "${ProjectName}-VPCID"
+          !Sub "${ProjectName}-vpc-id"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -32,6 +32,8 @@ Resources:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateData:
+        IamInstanceProfile:
+          Arn: !GetAtt InstanceProfile.Arn
         UserData:
           Fn::Base64: |
             #!/bin/bash
@@ -77,7 +79,7 @@ Resources:
     Properties:
       VPCZoneIdentifier:
         - Fn::ImportValue:
-            !Sub "${ProjectName}-PRIV-NETS"
+            !Sub "${ProjectName}-private-subnets"
       LaunchTemplate:
         LaunchTemplateId: !Ref LaunchTemplate
         Version: !GetAtt LaunchTemplate.LatestVersionNumber
@@ -93,7 +95,7 @@ Resources:
       GroupDescription: Allow http access to our load balancer
       VpcId:
         Fn::ImportValue:
-          !Sub "${ProjectName}-VPCID"
+          !Sub "${ProjectName}-vpc-id"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -104,8 +106,8 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Subnets:
-        - Fn::ImportValue: !Sub "${ProjectName}-PUB1-SN"
-        - Fn::ImportValue: !Sub "${ProjectName}-PUB2-SN"
+        - Fn::ImportValue: !Sub "${ProjectName}-public-subnet1"
+        - Fn::ImportValue: !Sub "${ProjectName}-public-subnet2"
       SecurityGroups:
         - Ref: LoadBalancerSecurityGroup
 
@@ -146,13 +148,12 @@ Resources:
       UnhealthyThresholdCount: 5
       VpcId:
         Fn::ImportValue:
-          Fn::Sub: "${ProjectName}-VPCID"
+          Fn::Sub: "${ProjectName}-vpc-id"
 
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: "udacity-project-1981"
-      AccessControl: Private
       VersioningConfiguration:
         Status: Enabled
       BucketEncryption:
@@ -164,6 +165,27 @@ Resources:
         IgnorePublicAcls: true
         BlockPublicPolicy: true
         RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldVersions
+            Status: Enabled
+            NoncurrentVersionExpirationInDays: 30
+
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Statement:
+          - Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !Sub "arn:aws:s3:::${S3Bucket}/*"
+              - !Sub "arn:aws:s3:::${S3Bucket}"
+            Condition:
+              Bool:
+                "aws:SecureTransport": "false"
 
   InstanceRole:
     Type: AWS::IAM::Role
@@ -172,28 +194,29 @@ Resources:
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
-        - Effect: 'Allow'
-          Principal:
-            Service:
-            - 'ec2.amazonaws.com'
-          Action:
-          - 'sts:AssumeRole'
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'ec2.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
       Policies:
         - PolicyName: s3
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
-            - Effect: Allow
-              Action:
-              - 's3:PutObject'
-              - 's3:GetObject'
-              Resource:
-                - !GetAtt S3Bucket.Arn
+              - Effect: Allow
+                Action:
+                  - 's3:PutObject'
+                  - 's3:GetObject'
+                Resource:
+                  - !Sub "arn:aws:s3:::${S3Bucket}/*"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Path: '/'
       Roles:
-      - !Ref InstanceRole
+        - !Ref InstanceRole
