@@ -5,7 +5,7 @@
 ![Infrastructure Diagram](./udacity_cloudformation_diagram.png)
 
 ## Application Load Balancer DNS name
-- udagra-LoadB-gHxpBgvezbPZ-2040284794.us-east-1.elb.amazonaws.com
+- [http://udagra-LoadB-gHxpBgvezbPZ-2040284794.us-east-1.elb.amazonaws.com](http://udagra-LoadB-gHxpBgvezbPZ-2040284794.us-east-1.elb.amazonaws.com)
 
 ## Spin up instructions
 - Use the following commands to create stacks:
