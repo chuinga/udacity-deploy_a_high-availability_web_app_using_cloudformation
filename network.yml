@@ -11,19 +11,19 @@ Parameters:
     Type: String
 
   PublicSubnet1CIDR:
-    Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone
+    Description: IP range for the public subnet in the first Availability Zone
     Type: String
 
   PublicSubnet2CIDR:
-    Description: Please enter the IP range (CIDR notation) for the public subnet in the second Availability Zone
+    Description: IP range for the public subnet in the second Availability Zone
     Type: String
 
   PrivateSubnet1CIDR:
-    Description: Please enter the IP range (CIDR notation) for the private subnet in the first Availability Zone
+    Description: IP range for the private subnet in the first Availability Zone
     Type: String
 
   PrivateSubnet2CIDR:
-    Description: Please enter the IP range (CIDR notation) for the private subnet in the second Availability Zone
+    Description: IP range for the private subnet in the second Availability Zone
     Type: String
 
 Resources:
@@ -112,37 +112,36 @@ Resources:
         - Key: Name
           Value: !Sub ${ProjectName}-nat-gateway-2
 
-  NatGateway1: 
+  NatGateway1:
     Type: AWS::EC2::NatGateway
-    Properties: 
+    Properties:
       AllocationId: !GetAtt NatGateway1EIP.AllocationId
       SubnetId: !Ref PublicSubnet1
-      
       Tags:
         - Key: Name
           Value: !Sub ${ProjectName}-nat-gateway-1
 
-  NatGateway2: 
+  NatGateway2:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt NatGateway2EIP.AllocationId
-      SubnetId: !Ref PublicSubnet2      
+      SubnetId: !Ref PublicSubnet2
       Tags:
         - Key: Name
           Value: !Sub ${ProjectName}-nat-gateway-2
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
-    Properties: 
+    Properties:
       VpcId: !Ref VPC
-      Tags: 
-        - Key: Name 
+      Tags:
+        - Key: Name
           Value: !Sub ${ProjectName}-public
 
-  DefaultPublicRoute: 
+  DefaultPublicRoute:
     Type: AWS::EC2::Route
     DependsOn: InternetGatewayAttachment
-    Properties: 
+    Properties:
       RouteTableId: !Ref PublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
@@ -158,13 +157,13 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet2
-  
+
   PrivateRouteTable1:
     Type: AWS::EC2::RouteTable
-    Properties: 
+    Properties:
       VpcId: !Ref VPC
-      Tags: 
-        - Key: Name 
+      Tags:
+        - Key: Name
           Value: !Sub ${ProjectName}-private-1
 
   DefaultPrivateRoute1:
@@ -182,12 +181,12 @@ Resources:
 
   PrivateRouteTable2:
     Type: AWS::EC2::RouteTable
-    Properties: 
+    Properties:
       VpcId: !Ref VPC
-      Tags: 
-        - Key: Name 
+      Tags:
+        - Key: Name
           Value: !Sub ${ProjectName}-private-2
-          
+
   DefaultPrivateRoute2:
     Type: AWS::EC2::Route
     Properties:
@@ -207,7 +206,7 @@ Outputs:
     Description: A reference to the created VPC
     Value: !Ref VPC
     Export:
-      Name: !Sub ${ProjectName}-VPCID
+      Name: !Sub ${ProjectName}-vpc-id
 
   VPCPublicRouteTable:
     Description: Public Routing
@@ -237,19 +236,19 @@ Outputs:
     Description: A list of the private subnets
     Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2 ]]
     Export:
-      Name: !Sub ${ProjectName}-PRIV-NETS
+      Name: !Sub ${ProjectName}-private-subnets
 
   PublicSubnet1:
     Description: A reference to the public subnet in the 1st Availability Zone
     Value: !Ref PublicSubnet1
     Export:
-      Name: !Sub ${ProjectName}-PUB1-SN
+      Name: !Sub ${ProjectName}-public-subnet1
 
   PublicSubnet2: 
     Description: A reference to the public subnet in the 2nd Availability Zone
     Value: !Ref PublicSubnet2
     Export:
-      Name: !Sub ${ProjectName}-PUB2-SN
+      Name: !Sub ${ProjectName}-public-subnet2
 
   PrivateSubnet1:
     Description: A reference to the private subnet in the 1st Availability Zone

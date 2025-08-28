@@ -14,10 +14,17 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
+# Check if required files exist
+[ -f "network.yml" ] || { echo "Error: network.yml not found" >&2; exit 1; }
+[ -f "network-parameters.json" ] || { echo "Error: network-parameters.json not found" >&2; exit 1; }
+
 aws cloudformation create-stack \
   --stack-name networkserver \
   --template-body file://network.yml \
   --parameters file://network-parameters.json \
   --capabilities CAPABILITY_NAMED_IAM \
   --region us-east-1 \
-  ${profile:+--profile "$profile"}
+  ${profile:+--profile "$profile"} || {
+  echo "Error: CloudFormation stack creation failed. Check stack events for details." >&2
+  exit 1
+}
