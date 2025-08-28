@@ -71,7 +71,7 @@ else
   declare -a stack_options
   for stack in $all_stacks; do
     echo " [$i] 💣 $stack"
-    stack_options[$i]=$stack
+    stack_options[i]=$stack
     ((i++))
   done
 
@@ -135,7 +135,7 @@ else
       # === BUILD DEPENDENCY GRAPH ===
       declare -A deps_incoming
       echo "🧠 Analyzing stack dependencies (Exports/Imports)..."
-      declare -A selected_id_set; for s in "${selected_stacks[@]}"; do selected_id_set["${id_by_name[$s]}"]=1; endone=true; done
+      declare -A selected_id_set; for s in "${selected_stacks[@]}"; do selected_id_set["${id_by_name[$s]}"]=1; done
 
       tmp_exports_file="$(mktemp)"
       aws cloudformation list-exports --query "Exports[].{Id:ExportingStackId,Name:Name}" --output text > "$tmp_exports_file" 2>/dev/null || true
@@ -229,7 +229,7 @@ inst_ids=$(aws ec2 describe-instances --filters Name=instance-state-name,Values=
 if [ -n "$inst_ids" ]; then
   echo "🖥️ EC2 instances found: $inst_ids"
   if confirm "   ➤ Terminate ALL of these EC2 instances?"; then
-    aws ec2 terminate-instances --instance-ids $inst_ids || echo "⚠️ Terminate call failed."
+    aws ec2 terminate-instances --instance-ids "$inst_ids" || echo "⚠️ Terminate call failed."
   fi
 else
   echo "✅ No EC2 instances."
@@ -284,7 +284,7 @@ vpc_endpoints=$(aws ec2 describe-vpc-endpoints --query "VpcEndpoints[].VpcEndpoi
 if [ -n "$vpc_endpoints" ]; then
   echo "🧩 VPC Endpoints: $vpc_endpoints"
   if confirm "   ➤ Delete ALL VPC endpoints?"; then
-    aws ec2 delete-vpc-endpoints --vpc-endpoint-ids $vpc_endpoints || echo "⚠️ Could not delete some endpoints."
+    aws ec2 delete-vpc-endpoints --vpc-endpoint-ids "$vpc_endpoints" || echo "⚠️ Could not delete some endpoints."
   fi
 else
   echo "✅ No VPC endpoints."
@@ -363,7 +363,7 @@ glue_crawlers=$(aws glue list-crawlers --query "CrawlerNames[]" --output text 2>
 glue_dbs=$(aws glue get-databases --query "DatabaseList[].Name" --output text 2>/dev/null || true)
 glue_conns=$(aws glue get-connections --query "ConnectionList[].Name" --output text 2>/dev/null || true)
 
-if [ -n "$glue_jobs$glue_crawlers$glue_dbs$glue_conns" ]; then
+if [ -n "$glue_jobs" ] || [ -n "$glue_crawlers" ] || [ -n "$glue_dbs" ] || [ -n "$glue_conns" ]; then
   echo "🧪 Glue resources detected."
   if confirm "   ➤ Delete ALL Glue jobs/crawlers/databases/connections?"; then
     for j in $glue_jobs; do aws glue delete-job --job-name "$j" || true; done
