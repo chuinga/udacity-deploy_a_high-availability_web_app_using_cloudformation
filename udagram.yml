@@ -71,7 +71,7 @@ Resources:
         ImageId: !Ref ImageId
         SecurityGroupIds:
           - !Ref SecurityGroup
-        InstanceType: t3.micro
+        InstanceType: t2.micro
         BlockDeviceMappings:
           - DeviceName: "/dev/sdf"
             Ebs:
@@ -168,10 +168,10 @@ Resources:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
       PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        IgnorePublicAcls: true
-        BlockPublicPolicy: true
-        RestrictPublicBuckets: true
+        BlockPublicAcls: false
+        IgnorePublicAcls: false
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
       LifecycleConfiguration:
         Rules:
           - Id: DeleteOldVersions
@@ -184,6 +184,10 @@ Resources:
       Bucket: !Ref S3Bucket
       PolicyDocument:
         Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Sub "arn:aws:s3:::${S3Bucket}/*"
           - Effect: Deny
             Principal: "*"
             Action: "s3:*"
