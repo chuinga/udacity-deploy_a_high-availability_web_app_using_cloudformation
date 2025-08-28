@@ -2,5 +2,9 @@
     {
         "ParameterKey": "ProjectName",
         "ParameterValue": "Udagram"
+    },
+    {
+        "ParameterKey": "AsgDesiredCapacity",
+        "ParameterValue": "4"
     }
 ]
